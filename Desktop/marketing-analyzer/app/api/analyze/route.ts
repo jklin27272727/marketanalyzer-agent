@@ -25,16 +25,16 @@ export async function POST(request: Request) {
     const metaDescription = $('meta[name="description"]').attr('content')?.trim() || ''
 
     const h1Texts: string[] = []
-    $('h1').each((_, el) => h1Texts.push($(el).text().trim()))
+    $('h1').each((_, el) => { h1Texts.push($(el).text().trim()) })
 
     const h2Texts: string[] = []
-    $('h2').each((_, el) => h2Texts.push($(el).text().trim()))
+    $('h2').each((_, el) => { h2Texts.push($(el).text().trim()) })
 
     const h3Texts: string[] = []
-    $('h3').each((_, el) => h3Texts.push($(el).text().trim()))
+    $('h3').each((_, el) => { h3Texts.push($(el).text().trim()) })
 
     const paragraphTexts: string[] = []
-    $('p').each((_, el) => paragraphTexts.push($(el).text().trim()))
+    $('p').each((_, el) => { paragraphTexts.push($(el).text().trim()) })
 
     const ctaTexts: string[] = []
     $('button, a[role="button"], .btn, .cta, [class*="button"], [class*="cta"]').each((_, el) => {
