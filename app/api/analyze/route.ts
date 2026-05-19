@@ -118,7 +118,7 @@ Be honest and critical in your analysis. Use specific, actionable language. Each
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'deepseek/deepseek-v4-flash:free',
+        model: 'openrouter/free',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this marketing page content:\n\n${cleanedText}` },
