@@ -1,5 +1,7 @@
 import * as cheerio from 'cheerio'
 
+export const maxDuration = 60
+
 export async function POST(request: Request) {
   try {
     const { url } = await request.json()
@@ -116,7 +118,7 @@ Be honest and critical in your analysis. Use specific, actionable language. Each
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openrouter/free',
+        model: 'deepseek/deepseek-chat-v3-5:free',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this marketing page content:\n\n${cleanedText}` },
