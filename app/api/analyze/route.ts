@@ -8,6 +8,16 @@ export async function POST(request: Request) {
       return Response.json({ error: 'A valid "url" field is required' }, { status: 400 })
     }
 
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      return Response.json({ error: 'Please enter a valid URL starting with http:// or https://' }, { status: 400 })
+    }
+
+    try {
+      new URL(url)
+    } catch {
+      return Response.json({ error: 'Invalid URL format' }, { status: 400 })
+    }
+
     const html = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MarketingAnalyzer/1.0)',
@@ -60,28 +70,44 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No content could be extracted from the provided URL' }, { status: 422 })
     }
 
-    const systemPrompt = `You are a marketing analyst expert. Analyze the following extracted content from a marketing landing page. Return ONLY a valid JSON object (no markdown, no code fences) with exactly these fields:
+    const systemPrompt = `You are a professional marketing analyst. Analyze the following marketing landing page content. Return ONLY a valid JSON object (no markdown, no code fences) with exactly these fields:
 
 {
-  "summary": "string - a 2-3 sentence summary of the marketing page",
-  "targetAudience": "string - who this page is targeting",
-  "valueProposition": "string - the core value proposition",
-  "mainClaims": ["string - key claims made"],
-  "ctaAnalysis": "string - analysis of the calls to action",
-  "strengths": ["string - marketing strengths"],
-  "weaknesses": ["string - marketing weaknesses"],
+  "summary": "string - a 2-3 sentence concise summary of what the page offers",
+  "targetAudience": "string - be very specific and detailed: include likely demographics, job roles, company size, industry, pain points they are trying to solve, and their likely technical sophistication level",
+  "valueProposition": "string - the core value proposition distilled into a single clear statement",
+  "mainClaims": ["string - key factual or implied claims the page makes"],
+  "ctaAnalysis": "string - critical analysis of the calls to action: are they clear, compelling, well-placed? What could be improved?",
+  "strengths": ["string - what this page does well from a marketing perspective"],
+  "weaknesses": [
+    {
+      "issue": "string - the specific problem or weakness",
+      "suggestion": "string - a concrete, actionable suggestion to fix it"
+    }
+  ],
+  "competitorComparison": "string - infer 2-3 likely competitors based on the page content and briefly explain how this offering is positioned relative to them",
   "rewrittenHero": {
-    "headline": "string - improved hero headline",
-    "subheadline": "string - improved hero subheadline",
-    "cta": "string - improved CTA button text"
+    "headline": "string - improved hero headline that is more compelling and benefit-driven",
+    "subheadline": "string - improved hero subheadline that adds supporting detail",
+    "cta": "string - improved CTA button text that is action-oriented and specific"
   },
   "scores": {
-    "clarity": number 1-10,
-    "differentiation": number 1-10,
-    "credibility": number 1-10,
-    "conversionPotential": number 1-10
+    "clarity": number with one decimal (0.0-10.0) - how clearly the page communicates its purpose,
+    "differentiation": number with one decimal (0.0-10.0) - how well it stands out from alternatives,
+    "credibility": number with one decimal (0.0-10.0) - how trustworthy and authoritative it feels,
+    "conversionPotential": number with one decimal (0.0-10.0) - how likely to convert visitors,
+    "emotionalAppeal": number with one decimal (0.0-10.0) - how well it connects with user pain points and desires
+  },
+  "scoreReasons": {
+    "clarity": ["string - 2-3 short bullet points explaining the clarity score"],
+    "differentiation": ["string - 2-3 short bullet points explaining the differentiation score"],
+    "credibility": ["string - 2-3 short bullet points explaining the credibility score"],
+    "conversionPotential": ["string - 2-3 short bullet points explaining the conversion score"],
+    "emotionalAppeal": ["string - 2-3 short bullet points explaining the emotional appeal score"]
   }
-}`
+}
+
+Be honest and critical in your analysis. Use specific, actionable language. Each score must have one decimal place.`
 
     const openRouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -95,7 +121,8 @@ export async function POST(request: Request) {
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Analyze this marketing page content:\n\n${cleanedText}` },
         ],
-        max_tokens: 2000,
+        max_tokens: 10000,
+        temperature: 0,
       }),
     })
 

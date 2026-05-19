@@ -7,6 +7,20 @@ interface Scores {
   differentiation: number
   credibility: number
   conversionPotential: number
+  emotionalAppeal: number
+}
+
+interface ScoreReasons {
+  clarity: string[]
+  differentiation: string[]
+  credibility: string[]
+  conversionPotential: string[]
+  emotionalAppeal: string[]
+}
+
+interface Weakness {
+  issue: string
+  suggestion: string
 }
 
 interface RewrittenHero {
@@ -22,27 +36,38 @@ interface AnalysisResult {
   mainClaims: string[]
   ctaAnalysis: string
   strengths: string[]
-  weaknesses: string[]
+  weaknesses: Weakness[]
+  competitorComparison: string
   rewrittenHero: RewrittenHero
   scores: Scores
+  scoreReasons: ScoreReasons
 }
 
-function ScoreCard({ label, value }: { label: string; value: number }) {
+function ScoreCard({ label, value, reasons }: { label: string; value: number; reasons: string[] }) {
+  const pct = value * 10
   const color =
     value >= 8 ? 'bg-emerald-500' : value >= 6 ? 'bg-amber-500' : 'bg-red-500'
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 p-4 flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-zinc-600">{label}</span>
-        <span className="text-2xl font-bold text-zinc-900">{value}/10</span>
-      </div>
+    <div className="bg-white rounded-xl border border-zinc-200 p-4 flex flex-col gap-3 h-full">
+      <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider whitespace-nowrap">{label}</span>
+      <span className="text-3xl font-bold text-zinc-900">{value.toFixed(1)}/10</span>
       <div className="w-full h-2 bg-zinc-100 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${color}`}
-          style={{ width: `${value * 10}%` }}
+          style={{ width: `${pct}%` }}
         />
       </div>
+      {reasons && reasons.length > 0 && (
+        <ul className="text-xs text-zinc-400 space-y-0.5 mt-auto">
+          {reasons.map((r, i) => (
+            <li key={i} className="flex gap-1.5">
+              <span className="text-zinc-300 mt-1 shrink-0">•</span>
+              <span>{r}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
@@ -135,11 +160,12 @@ export default function Home() {
           <div className="space-y-6">
             <section>
               <h2 className="text-lg font-semibold text-zinc-900 mb-4">Scores</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <ScoreCard label="Clarity" value={result.scores.clarity} />
-                <ScoreCard label="Differentiation" value={result.scores.differentiation} />
-                <ScoreCard label="Credibility" value={result.scores.credibility} />
-                <ScoreCard label="Conversion" value={result.scores.conversionPotential} />
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <ScoreCard label="Clarity" value={result.scores.clarity} reasons={result.scoreReasons?.clarity} />
+                <ScoreCard label="Differentiation" value={result.scores.differentiation} reasons={result.scoreReasons?.differentiation} />
+                <ScoreCard label="Credibility" value={result.scores.credibility} reasons={result.scoreReasons?.credibility} />
+                <ScoreCard label="Conversion" value={result.scores.conversionPotential} reasons={result.scoreReasons?.conversionPotential} />
+                <ScoreCard label="Emotional Appeal" value={result.scores.emotionalAppeal} reasons={result.scoreReasons?.emotionalAppeal} />
               </div>
             </section>
 
@@ -168,6 +194,14 @@ export default function Home() {
               </Card>
             </section>
 
+            {result.competitorComparison && (
+              <section>
+                <Card title="Competitor Comparison">
+                  <p className="text-zinc-700 leading-relaxed">{result.competitorComparison}</p>
+                </Card>
+              </section>
+            )}
+
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card title="Strengths" className="border-emerald-200 bg-emerald-50/50">
                 <ul className="list-disc list-inside space-y-1">
@@ -177,9 +211,12 @@ export default function Home() {
                 </ul>
               </Card>
               <Card title="Weaknesses" className="border-red-200 bg-red-50/50">
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="space-y-3">
                   {result.weaknesses.map((w, i) => (
-                    <li key={i} className="text-red-800">{w}</li>
+                    <li key={i}>
+                      <p className="text-red-800 font-medium">{w.issue}</p>
+                      <p className="text-red-600/70 text-sm mt-0.5">→ Fix: {w.suggestion}</p>
+                    </li>
                   ))}
                 </ul>
               </Card>
@@ -197,8 +234,8 @@ export default function Home() {
                     <p className="text-zinc-300 mt-1">{result.rewrittenHero.subheadline}</p>
                   </div>
                   <div>
-                    <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">CTA</span>
-                    <p className="inline-block mt-1 px-4 py-2 bg-white text-zinc-900 rounded-lg font-semibold text-sm">
+                    <span className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider">CTA</span>
+                    <p className="mt-1 px-4 py-2 bg-white text-zinc-900 rounded-lg font-semibold text-sm w-fit">
                       {result.rewrittenHero.cta}
                     </p>
                   </div>
