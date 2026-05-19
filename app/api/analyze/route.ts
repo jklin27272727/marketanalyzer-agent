@@ -1,7 +1,5 @@
 import * as cheerio from 'cheerio'
 
-export const maxDuration = 60
-
 export async function POST(request: Request) {
   try {
     const { url } = await request.json()
@@ -140,20 +138,12 @@ Be honest and critical in your analysis. Use specific, actionable language. Each
       throw new Error('Empty response from OpenRouter API')
     }
 
-    let result
-    try {
-      // Remove markdown fences if present
-      const cleaned = aiContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-      result = JSON.parse(cleaned)
-    } catch {
-      // Try extracting JSON object
-      const start = aiContent.indexOf('{')
-      const end = aiContent.lastIndexOf('}')
-      if (start === -1 || end === -1) {
-        throw new Error('Failed to parse AI response as JSON')
-      }
-      result = JSON.parse(aiContent.slice(start, end + 1))
+    const jsonMatch = aiContent.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      throw new Error('Failed to parse AI response as JSON')
     }
+
+    const result = JSON.parse(jsonMatch[0])
 
     return Response.json(result)
   } catch (error) {
