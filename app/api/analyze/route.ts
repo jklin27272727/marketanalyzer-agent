@@ -140,12 +140,31 @@ Be honest and critical in your analysis. Use specific, actionable language. Each
       throw new Error('Empty response from OpenRouter API')
     }
 
-    const jsonMatch = aiContent.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('Failed to parse AI response as JSON')
-    }
+    let result: unknown
 
-    const result = JSON.parse(jsonMatch[0])
+    try {
+      result = JSON.parse(aiContent)
+    } catch {
+      const start = aiContent.indexOf('{')
+      const end = aiContent.lastIndexOf('}')
+      if (start !== -1 && end !== -1 && start < end) {
+        try {
+          result = JSON.parse(aiContent.slice(start, end + 1))
+        } catch {
+          const jsonMatch = aiContent.match(/\{[\s\S]*\}/)
+          if (!jsonMatch) {
+            throw new Error('Failed to parse AI response as JSON')
+          }
+          result = JSON.parse(jsonMatch[0])
+        }
+      } else {
+        const jsonMatch = aiContent.match(/\{[\s\S]*\}/)
+        if (!jsonMatch) {
+          throw new Error('Failed to parse AI response as JSON')
+        }
+        result = JSON.parse(jsonMatch[0])
+      }
+    }
 
     return Response.json(result)
   } catch (error) {
